@@ -97,7 +97,19 @@ export const createJob = async (item: Object) : Promise<boolean> => {
 
 // Delete an existing Job
 export const deleteJob = async (id: String) : Promise<boolean> => {
-    console.log(id);
+    const params = {
+        TableName: 'jobs',
+        Key: {
+            job_id: id
+        }
+    }
+    await dynamoClient.delete(params).promise()
+    .then((response)=>{
+        return true;
+    })
+    .catch((error)=>{
+        return false;
+    });
     return true;
 }
 
@@ -110,6 +122,16 @@ export const userDetails = async (id : String) : Promise<Object> => {
         TableName: 'users',
         Key: {
             erno: id,
+        },
+    }
+    return await dynamoClient.get(params).promise();
+}
+
+export const login = async (id : String, pass: String) : Promise<Object> => {
+    const params = {
+        TableName: 'users',
+        Key: {
+            erno: id
         },
     }
     return await dynamoClient.get(params).promise();
@@ -136,6 +158,88 @@ export const studentPost = async (item : JSON) : Promise<boolean> => {
     }).catch((error)=>{
         console.log(error);
         res = false;
+    });
+    return res;
+}
+
+
+// Admin table functions
+
+// Get Admin Data
+export const getAdmin = async (id: String) : Promise<Object> => {
+    const params = {
+        TableName: 'admin',
+        Key: {
+            emp_no: id
+        }
+    }
+    let res: Object = {};
+    await dynamoClient.get(params).promise()
+    .then((response)=>{
+        res=response;
+    }).catch((error)=>{
+        throw error;
+    })
+    return res;
+};
+
+// Create a new Admin
+export const createAdmin = async (item: Object) : Promise<boolean> => {
+    const params = {
+        TableName: 'admin',
+        Item: item
+    }
+    let res: boolean = false;
+    await dynamoClient.put(params).promise()
+    .then((response)=>{
+        console.log(response);
+        res=true;
+    })
+    .catch((error)=>{
+        console.log(error);
+        if(error.statusCode===400){
+            res=false;
+        }
+    });
+    return res;
+};
+
+
+// Companies Table
+
+export const getCompanies = async () : Promise<Object> =>{
+    const params = {
+        TableName: 'company',
+    }
+    let res: object = {};
+    await dynamoClient.scan(params).promise()
+    .then((response)=>{
+        res=response;
+    })
+    .catch((error)=>{
+        if(error.statusCode===400){
+            res={message: 'Error Occurred'};
+        }
+    });
+    return res;
+}
+
+export const getCompaniesByID = async (id: String) : Promise<Object> => {
+    const params = {
+        TableName: 'company',
+        Key: {
+            company_id: id
+        }
+    }
+    let res: object = {};
+    await dynamoClient.get(params).promise()
+    .then((response)=>{
+        res=response;
+    })
+    .catch((error)=>{
+        if(error.statusCode===400){
+            res={message: 'Error Occurred'};
+        }
     });
     return res;
 }
