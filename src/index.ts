@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Request, Response, response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { studentPost, getJobs, getJobsByID, createJob, getPlacementPolicy, userDetails, createAdmin, deleteJob, login, getCompanies, getCompaniesByID, getAdmin } from './DynamoDB/dynamo';
@@ -813,7 +813,7 @@ app.delete(`/admin/jobs/:id`, (req: Request, res: Response) :boolean => {
 // Super Admin APIs
 
 // Create Admin Login
-app.post(`/admin/super/createAdmin`, (req: Request, res: Response) : boolean => {
+app.post(`/admin/super/createAdmin`, async (req: Request, res: Response) => {
     if(req.body.emp_no==='' || req.body.emp_no===null || req.body.emp_no===undefined){
         res.status(400);
         res.json({
@@ -863,6 +863,12 @@ app.post(`/admin/super/createAdmin`, (req: Request, res: Response) : boolean => 
         }).end();
         return false;
     }
+    let pass : String = ''
+    await generateHas(req.body.password).then((response)=>{
+        pass = response;
+    }).catch((error)=>{
+        throw error;
+    });
     const newAdmin = {
         emp_no: req.body.emp_no,
         name: req.body.name,
@@ -870,7 +876,7 @@ app.post(`/admin/super/createAdmin`, (req: Request, res: Response) : boolean => 
         contact: req.body.contact,
         designation: req.body.designation,
         // image: 
-        password: req.body.password,
+        password: pass,
         super: req.body.super
     }
     createAdmin(newAdmin)
